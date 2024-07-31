@@ -20,9 +20,6 @@ This server's primary functionn is for debugging functions built in Python and
 testing third party connectivity without the complexity of AWS 
 
 """
-# This is needed for Arcadis MITM style introspection
-import truststore
-truststore.inject_into_ssl()
 
 from pprint import pprint
 
