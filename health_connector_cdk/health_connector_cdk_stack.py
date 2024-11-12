@@ -72,10 +72,10 @@ class HealthConnectorCdkStack(Stack):
             'HealthConnectorApiHandler',
             runtime=lambda_.Runtime.PYTHON_3_12,
             code=lambda_.Code.from_asset('lambda',
-                bundling=BundlingOptions(
-                    image=lambda_.Runtime.PYTHON_3_12.bundling_image,
-                    command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
-                ])
+                # bundling=BundlingOptions(
+                #     image=lambda_.Runtime.PYTHON_3_12.bundling_image,
+                #     command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
+                # ])
             ),
             handler='health_connector.api_handler',
             timeout=Duration.minutes(1),
@@ -100,10 +100,10 @@ class HealthConnectorCdkStack(Stack):
             'HealthConnectorKioskWorker',
             runtime=lambda_.Runtime.PYTHON_3_12,
             code=lambda_.Code.from_asset('lambda',
-                bundling=BundlingOptions(
-                    image=lambda_.Runtime.PYTHON_3_12.bundling_image,
-                    command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
-                ])
+                # bundling=BundlingOptions(
+                #     image=lambda_.Runtime.PYTHON_3_12.bundling_image,
+                #     command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
+                # ])
             ),
             handler='health_connector.lambda_kiosk',
             timeout=Duration.minutes(10),
@@ -117,10 +117,10 @@ class HealthConnectorCdkStack(Stack):
             'HealthConnectorKioskStatus',
             runtime=lambda_.Runtime.PYTHON_3_12,
             code=lambda_.Code.from_asset('lambda',
-                bundling=BundlingOptions(
-                    image=lambda_.Runtime.PYTHON_3_12.bundling_image,
-                    command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
-                ])
+                # bundling=BundlingOptions(
+                #     image=lambda_.Runtime.PYTHON_3_12.bundling_image,
+                #     command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
+                # ])
             ),
             handler='health_connector.lambda_kiosk_status',
             timeout=Duration.minutes(10),
@@ -129,50 +129,50 @@ class HealthConnectorCdkStack(Stack):
             }
         )
 
-        lyft_tapi_trips = lambda_.Function(
-            self,
-            'HealthConnectorTAPITrips',
-            runtime=lambda_.Runtime.PYTHON_3_12,
-            code=lambda_.Code.from_asset('lambda',
-                bundling=BundlingOptions(
-                    image=lambda_.Runtime.PYTHON_3_12.bundling_image,
-                    command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
-                ])
-            ),
-            handler='health_connector.lambda_lyft_tapi_trips_v1',
-            timeout=Duration.minutes(10),
-            environment={
-                'TABLE_NAME': table_name
-            }
-        )
+        # lyft_tapi_trips = lambda_.Function(
+        #     self,
+        #     'HealthConnectorTAPITrips',
+        #     runtime=lambda_.Runtime.PYTHON_3_12,
+        #     code=lambda_.Code.from_asset('lambda',
+        #         bundling=BundlingOptions(
+        #             image=lambda_.Runtime.PYTHON_3_12.bundling_image,
+        #             command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && rsync -r . /asset-output"
+        #         ])
+        #     ),
+        #     handler='health_connector.lambda_lyft_tapi_trips_v1',
+        #     timeout=Duration.minutes(10),
+        #     environment={
+        #         'TABLE_NAME': table_name
+        #     }
+        # )
 
-        table.grant_read_write_data(lyft_tapi_trips)
+        # table.grant_read_write_data(lyft_tapi_trips)
         table.grant_read_write_data(api_handler)
         table2.grant_read_write_data(api_handler)
-        table.grant_read_data(dashboard_handler)
+        # table.grant_read_data(dashboard_handler)
 
 
-        domain_name = 'hirtahealthconnector.org'
-        hosted_zone = route53_.HostedZone.from_lookup(
-            self,
-            'HealthConnectorHostedZone',
-            domain_name=domain_name
-        )
+        # domain_name = 'hirtahealthconnector.org'
+        # hosted_zone = route53_.HostedZone.from_lookup(
+        #     self,
+        #     'HealthConnectorHostedZone',
+        #     domain_name=domain_name
+        # )
         # had to create manually in us-east-1 for cloudfront.
-        us_east_1_certificate = acm_.Certificate.from_certificate_arn(
-            self,
-            'HealthConnectorCertificateUsEast1',
-            certificate_arn='arn:aws:acm:us-east-1:891377257073:certificate/2ff2ee84-3e12-4701-9628-877fabd5f76c'
-        )
-        certificate = acm_.Certificate(
-            self,
-            'HealthConnectorCertificate',
-            domain_name=domain_name,
-            subject_alternative_names=[
-                f'*.{domain_name}'
-            ],
-            validation=acm_.CertificateValidation.from_dns(hosted_zone)
-        )
+        # us_east_1_certificate = acm_.Certificate.from_certificate_arn(
+        #     self,
+        #     'HealthConnectorCertificateUsEast1',
+        #     certificate_arn='arn:aws:acm:us-east-1:891377257073:certificate/2ff2ee84-3e12-4701-9628-877fabd5f76c'
+        # )
+        # certificate = acm_.Certificate(
+        #     self,
+        #     'HealthConnectorCertificate',
+        #     domain_name=domain_name,
+        #     subject_alternative_names=[
+        #         f'*.{domain_name}'
+        #     ],
+        #     validation=acm_.CertificateValidation.from_dns(hosted_zone)
+        # )
 
         # setup the cognito user pool and the oauth scope for the API.
         user_pool, user_pool_domain = self.setup_cognito_user_pool()
@@ -183,19 +183,19 @@ class HealthConnectorCdkStack(Stack):
         self.setup_api_user_pool_client(user_pool, api_scope, 'Pompano')
         self.setup_api_user_pool_client(user_pool, api_scope, 'Via')
 
-        bucket = s3_.Bucket(
-            self,
-            'HealthConnectorBucket',
-            bucket_name='health-connector-website-bucket',
-            website_index_document='index.html',
-            public_read_access=True,
-            block_public_access=s3_.BlockPublicAccess(
-                block_public_acls=False,
-                block_public_policy=False,
-                ignore_public_acls=False,
-                restrict_public_buckets=False
-            )
-        )
+        # bucket = s3_.Bucket(
+        #     self,
+        #     'HealthConnectorBucket',
+        #     bucket_name='health-connector-website-bucket',
+        #     website_index_document='index.html',
+        #     public_read_access=True,
+        #     block_public_access=s3_.BlockPublicAccess(
+        #         block_public_acls=False,
+        #         block_public_policy=False,
+        #         ignore_public_acls=False,
+        #         restrict_public_buckets=False
+        #     )
+        # )
         # s3_deployment_.BucketDeployment(
         #     self,
         #     'HealthConnectorBucketDeployment',
@@ -205,30 +205,30 @@ class HealthConnectorCdkStack(Stack):
 
 
         # this one is for Kiosk!!
-        cloudfront_distribution = cloudfront_.Distribution(
-            self,
-            'HealthConnectorCloudFrontDistribution',
-            default_behavior=cloudfront_.BehaviorOptions(
-                origin=origins_.S3Origin(
-                    bucket=bucket
-                ),
-                viewer_protocol_policy=cloudfront_.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
-            ),
-            domain_names=[
-                f'dashboard.{domain_name}'
-                # f'kiosk.hirta.us'
-            ],
-            certificate=us_east_1_certificate
-        )
-        route53_.ARecord(
-            self,
-            'HealthConnectorCloudFrontARecord',
-            zone=hosted_zone,
-            record_name='dashboard',
-            target=route53_.RecordTarget.from_alias(
-                route53_targets_.CloudFrontTarget(cloudfront_distribution)
-            )
-        )
+        # cloudfront_distribution = cloudfront_.Distribution(
+        #     self,
+        #     'HealthConnectorCloudFrontDistribution',
+        #     default_behavior=cloudfront_.BehaviorOptions(
+        #         origin=origins_.S3Origin(
+        #             bucket=bucket
+        #         ),
+        #         viewer_protocol_policy=cloudfront_.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+        #     ),
+        #     domain_names=[
+        #         f'dashboard.{domain_name}'
+        #         # f'kiosk.hirta.us'
+        #     ],
+        #     certificate=us_east_1_certificate
+        # )
+        # route53_.ARecord(
+        #     self,
+        #     'HealthConnectorCloudFrontARecord',
+        #     zone=hosted_zone,
+        #     record_name='dashboard',
+        #     target=route53_.RecordTarget.from_alias(
+        #         route53_targets_.CloudFrontTarget(cloudfront_distribution)
+        #     )
+        # )
 
         api_stage_name = 'prod'
         api = apigw_.RestApi(
@@ -244,21 +244,21 @@ class HealthConnectorCdkStack(Stack):
                 stage_name=api_stage_name,
                 metrics_enabled=True,
             ),
-            domain_name=apigw_.DomainNameOptions(
-                domain_name=f'api.{domain_name}',
-                certificate=certificate,
-                endpoint_type=apigw_.EndpointType.REGIONAL
-            )
+            # domain_name=apigw_.DomainNameOptions(
+            #     domain_name=f'api.{domain_name}',
+            #     certificate=certificate,
+            #     endpoint_type=apigw_.EndpointType.REGIONAL
+            # )
         )     
-        route53_.ARecord(
-            self,
-            'HealthConnectorApiARecord',
-            zone=hosted_zone,
-            record_name='api',
-            target=route53_.RecordTarget.from_alias(
-                route53_targets_.ApiGateway(api)
-            )
-        )
+        # route53_.ARecord(
+        #     self,
+        #     'HealthConnectorApiARecord',
+        #     zone=hosted_zone,
+        #     record_name='api',
+        #     target=route53_.RecordTarget.from_alias(
+        #         route53_targets_.ApiGateway(api)
+        #     )
+        # )
 
         authorizer = apigw_.CognitoUserPoolsAuthorizer(
             self,
@@ -460,7 +460,7 @@ class HealthConnectorCdkStack(Stack):
             'HealthConnectorUserPoolDomain',
             user_pool=user_pool,
             cognito_domain=cognito_.CognitoDomainOptions(
-                domain_prefix='health-connector'
+                domain_prefix='health-connectordev'
             )
         )
 
