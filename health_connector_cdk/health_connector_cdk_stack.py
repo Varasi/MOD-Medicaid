@@ -13,6 +13,7 @@ from aws_cdk import (
     aws_certificatemanager as acm_,
     aws_cloudfront as cloudfront_,
     aws_cloudfront_origins as origins_,
+    aws_iam as iam
 )
 from constructs import Construct
 
@@ -65,12 +66,20 @@ class HealthConnectorCdkStack(Stack):
                         )],
         )
 
+        my_layer = lambda_.LayerVersion(
+            self, 
+            "HealthConnectorLayer",
+            code=lambda_.Code.from_asset("common"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
+            description="A layer with custom dependencies"
+        )
+
 
         # api handler lambda function.
         api_handler = lambda_.Function(
             self,
             'HealthConnectorApiHandler',
-            runtime=lambda_.Runtime.PYTHON_3_12,
+            runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda',
                 # bundling=BundlingOptions(
                 #     image=lambda_.Runtime.PYTHON_3_12.bundling_image,
@@ -78,6 +87,7 @@ class HealthConnectorCdkStack(Stack):
                 # ])
             ),
             handler='health_connector.api_handler',
+            layers=[my_layer],
             timeout=Duration.minutes(1),
             environment={
                 'TABLE_NAME': table_name,
@@ -88,9 +98,10 @@ class HealthConnectorCdkStack(Stack):
         dashboard_handler = lambda_.Function(
             self,
             'HealthConnectorDashboardHandler',
-            runtime=lambda_.Runtime.PYTHON_3_12,
+            runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda'),
             handler='health_connector.dashboard_handler',
+            layers=[my_layer],
             environment={
                 'TABLE_NAME': table_name
             }
@@ -98,7 +109,7 @@ class HealthConnectorCdkStack(Stack):
         kiosk_workerbee = lambda_.Function(
             self,
             'HealthConnectorKioskWorker',
-            runtime=lambda_.Runtime.PYTHON_3_12,
+            runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda',
                 # bundling=BundlingOptions(
                 #     image=lambda_.Runtime.PYTHON_3_12.bundling_image,
@@ -106,6 +117,7 @@ class HealthConnectorCdkStack(Stack):
                 # ])
             ),
             handler='health_connector.lambda_kiosk',
+            layers=[my_layer],
             timeout=Duration.minutes(10),
             environment={
                 'TABLE_NAME': table_name
@@ -115,7 +127,7 @@ class HealthConnectorCdkStack(Stack):
         kiosk_statusbee = lambda_.Function(
             self,
             'HealthConnectorKioskStatus',
-            runtime=lambda_.Runtime.PYTHON_3_12,
+            runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda',
                 # bundling=BundlingOptions(
                 #     image=lambda_.Runtime.PYTHON_3_12.bundling_image,
@@ -123,6 +135,7 @@ class HealthConnectorCdkStack(Stack):
                 # ])
             ),
             handler='health_connector.lambda_kiosk_status',
+            layers=[my_layer],
             timeout=Duration.minutes(10),
             environment={
                 'TABLE_NAME': table_name
@@ -149,7 +162,29 @@ class HealthConnectorCdkStack(Stack):
         # table.grant_read_write_data(lyft_tapi_trips)
         table.grant_read_write_data(api_handler)
         table2.grant_read_write_data(api_handler)
-        # table.grant_read_data(dashboard_handler)
+        table.grant_read_data(dashboard_handler)
+
+        api_handler.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["secretsmanager:*"],
+                resources=["*"],
+                effect=iam.Effect.ALLOW
+            )
+        )
+        kiosk_workerbee.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["secretsmanager:*"],
+                resources=["*"],
+                effect=iam.Effect.ALLOW
+            )
+        )
+        kiosk_statusbee.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=["secretsmanager:*"],
+                resources=["*"],
+                effect=iam.Effect.ALLOW
+            )
+        )
 
 
         # domain_name = 'hirtahealthconnector.org'
