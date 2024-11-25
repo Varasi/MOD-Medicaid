@@ -17,14 +17,24 @@ from requests.auth import HTTPBasicAuth
 
 from credentials import crendential
 
-# Returns rider information based on rider ID
-def via_rider_details(rider_id):
-
+#get credentials from secret manager
+def get_secrets():
     client_id = crendential().via_client_id
     client_secret = crendential().via_client_secret
     via_api_key = crendential().via_api_key
     via_api_url = crendential().via_api_url
     via_auth_url = crendential().via_auth_url
+    
+    return (client_id,client_secret,via_api_key,via_api_url,via_auth_url)
+
+# Returns rider information based on rider ID
+def via_rider_details(rider_id):
+
+    
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -49,12 +59,9 @@ def via_rider_details(rider_id):
 # Returns rider ID based on ride information
 def via_get_rider_id(ride_info):
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
 
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -88,12 +95,8 @@ def via_get_rider_id(ride_info):
 def via_get_rider_id_create(rider):
 
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -122,12 +125,8 @@ def via_get_rider_id_create(rider):
 # Returns whether or not a rider exists in Via's system already
 def via_rider_exists(ride_info):
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -152,12 +151,8 @@ def via_rider_exists(ride_info):
 # Requests trip after transformation from Lyft payload to Via
 def via_request_trip(ride_info):
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -202,12 +197,8 @@ def via_request_trip(ride_info):
 def via_cancel_trip(trip_id):
 
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -232,12 +223,8 @@ def via_cancel_trip(trip_id):
 # Returns trip details based on trip ID
 def via_trip_details(trip_id):
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -261,12 +248,8 @@ def via_trip_details(trip_id):
 
 def via_get_trips(trip_criteria):
 
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -309,13 +292,7 @@ def via_get_trips(trip_criteria):
 
 # Gets trip status for a given rider
 def via_check_status(rider):
-
-    client_id = crendential().via_client_id
-    client_secret = crendential().via_client_secret
-    via_api_key = crendential().via_api_key
-    via_api_url = crendential().via_api_url
-    via_auth_url = crendential().via_auth_url
-
+    
     
     start_time = time.time()
     try:
