@@ -10,12 +10,12 @@ transform and communication code betwen Lyft and Via.
 import json, uuid, os
 from pprint import pprint
 
-import sqlalchemy as sa
-from sqlalchemy import select
+# import sqlalchemy as sa
+# from sqlalchemy import select
 
 from .lyft_via_xform import lyft_to_via, via_to_lyft
 from .via_request import via_request_trip, via_cancel_trip
-from datastore import sqlite_db, trip_requests
+# from datastore import sqlite_db, trip_requests
 from .AWS_Data_Operations import dd_new_trip, dd_get_via_trip_id, dd_retrieve_data, dd_history_entry 
 
 environ = os.environ.get('Execution')
@@ -64,18 +64,18 @@ def lyft_trip_request(lyft_trip_data):
     lyft_response = via_to_lyft(via_response, lyft_trip_data, atms_ride_id)
     print(lyft_response)
 
-    if environ == 'On_Prem':
-        with sqlite_db.connect() as con:
-            con.execute(trip_requests.insert(), dict(
-                tapi_trip_id=lyft_trip_data['tapi_trip_id'],
-                atms_ride_id=atms_ride_id,
-                via_trip_id=via_response['trip_id'],
-                lyft_request_payload=json.dumps(lyft_trip_data),
-                via_response_payload=json.dumps(via_response)
-            ))
-            con.commit()
-    elif environ == 'On_AWS':
-        dd_new_trip(lyft_trip_data, atms_ride_id, via_response)
+    # if environ == 'On_Prem':
+    #     with sqlite_db.connect() as con:
+    #         con.execute(trip_requests.insert(), dict(
+    #             tapi_trip_id=lyft_trip_data['tapi_trip_id'],
+    #             atms_ride_id=atms_ride_id,
+    #             via_trip_id=via_response['trip_id'],
+    #             lyft_request_payload=json.dumps(lyft_trip_data),
+    #             via_response_payload=json.dumps(via_response)
+    #         ))
+    #         con.commit()
+    # elif environ == 'On_AWS':
+    dd_new_trip(lyft_trip_data, atms_ride_id, via_response)
 
 
     return lyft_response, 201
@@ -84,19 +84,19 @@ def lyft_trip_request(lyft_trip_data):
 def lyft_cancel_request(tapi_trip_id):
     """Process Lyft's cancel request in Via"""
 
-    if environ == 'On_Prem':
-        with sqlite_db.connect() as con:
-            rows = con.execute(
-                select(trip_requests.c.via_trip_id)
-                .where(trip_requests.c.tapi_trip_id==str(tapi_trip_id)
-                )
-            )
-            for i, row in enumerate(rows):
-                if i == 0:
-                    via_trip_id = row[0]
-                    break
-    elif environ == 'On_AWS':
-        via_trip_id = dd_get_via_trip_id(tapi_trip_id)
+    # if environ == 'On_Prem':
+    #     with sqlite_db.connect() as con:
+    #         rows = con.execute(
+    #             select(trip_requests.c.via_trip_id)
+    #             .where(trip_requests.c.tapi_trip_id==str(tapi_trip_id)
+    #             )
+    #         )
+    #         for i, row in enumerate(rows):
+    #             if i == 0:
+    #                 via_trip_id = row[0]
+    #                 break
+    # elif environ == 'On_AWS':
+    via_trip_id = dd_get_via_trip_id(tapi_trip_id)
 
     print(via_trip_id)
     via_response = via_cancel_trip(via_trip_id)
@@ -106,23 +106,23 @@ def lyft_cancel_request(tapi_trip_id):
 def lyft_update_request(new_lyft_trip_data, tapi_trip_id):
     """Process Lyft's update request in Via"""
 
-    if environ == 'On_Prem':
-        with sqlite_db.connect() as con:
-            rows = con.execute(
-                select((trip_requests.c.via_trip_id, trip_requests.c.lyft_request_payload))
-                .where(trip_requests.c.tapi_trip_id==str(tapi_trip_id)
-                )
-            )
-            for i, row in enumerate(rows):
-                if i == 0:
-                    orig_trip_id = row[0]
-                    orig_lyft_req = row[1]
-                    break
-    elif environ == 'On_AWS':
+    # if environ == 'On_Prem':
+    #     with sqlite_db.connect() as con:
+    #         rows = con.execute(
+    #             select((trip_requests.c.via_trip_id, trip_requests.c.lyft_request_payload))
+    #             .where(trip_requests.c.tapi_trip_id==str(tapi_trip_id)
+    #             )
+    #         )
+    #         for i, row in enumerate(rows):
+    #             if i == 0:
+    #                 orig_trip_id = row[0]
+    #                 orig_lyft_req = row[1]
+    #                 break
+    # elif environ == 'On_AWS':
         # Get original data
-        full_data = dd_retrieve_data(tapi_trip_id)
-        orig_lyft_req = json.loads(full_data['lyft_request_payload'])
-        orig_trip_id = full_data['via_trip_id']
+    full_data = dd_retrieve_data(tapi_trip_id)
+    orig_lyft_req = json.loads(full_data['lyft_request_payload'])
+    orig_trip_id = full_data['via_trip_id']
 
 
     # Merge the new data with the old data
@@ -153,17 +153,17 @@ def kiosk_via_trip_request(via_trip_data):
         except SystemError as e:
             return str(e), 500
 
-        if environ == 'On_Prem':
-            with sqlite_db.connect() as con:
-                con.execute(trip_requests.insert(), dict(
-                    tapi_trip_id=tapi_trip_id,
-                    atms_ride_id=atms_ride_id,
-                    via_trip_id=via_response_data['trip_id'],
-                    via_response_payload=json.dumps(via_response_data)
-                ))
-                con.commit()
-        elif environ == 'On_AWS':
-            dd_new_trip({'tapi_trip_id': tapi_trip_id}, atms_ride_id, via_response_data)
+        # if environ == 'On_Prem':
+        #     with sqlite_db.connect() as con:
+        #         con.execute(trip_requests.insert(), dict(
+        #             tapi_trip_id=tapi_trip_id,
+        #             atms_ride_id=atms_ride_id,
+        #             via_trip_id=via_response_data['trip_id'],
+        #             via_response_payload=json.dumps(via_response_data)
+        #         ))
+        #         con.commit()
+        # elif environ == 'On_AWS':
+        dd_new_trip({'tapi_trip_id': tapi_trip_id}, atms_ride_id, via_response_data)
 
     except SystemError as e:
         print(e)

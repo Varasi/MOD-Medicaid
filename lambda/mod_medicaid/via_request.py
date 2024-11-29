@@ -11,12 +11,30 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 from requests.auth import HTTPBasicAuth
 
-from credentials import via_client_id as client_id
-from credentials import via_client_secret as client_secret
-from credentials import via_api_key, via_api_url, via_auth_url
+# from credentials import via_client_id as client_id
+# from credentials import via_client_secret as client_secret
+# from credentials import via_api_key, via_api_url, via_auth_url
+
+from credentials import crendential
+
+#get credentials from secret manager
+def get_secrets():
+    client_id = crendential().via_client_id
+    client_secret = crendential().via_client_secret
+    via_api_key = crendential().via_api_key
+    via_api_url = crendential().via_api_url
+    via_auth_url = crendential().via_auth_url
+    
+    return (client_id,client_secret,via_api_key,via_api_url,via_auth_url)
 
 # Returns rider information based on rider ID
 def via_rider_details(rider_id):
+
+    
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -40,6 +58,11 @@ def via_rider_details(rider_id):
 
 # Returns rider ID based on ride information
 def via_get_rider_id(ride_info):
+
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     params = {
@@ -70,6 +93,11 @@ def via_get_rider_id(ride_info):
 
 #using create/rider
 def via_get_rider_id_create(rider):
+
+
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     params = {
@@ -96,6 +124,10 @@ def via_get_rider_id_create(rider):
 
 # Returns whether or not a rider exists in Via's system already
 def via_rider_exists(ride_info):
+
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     params = {
@@ -118,6 +150,10 @@ def via_rider_exists(ride_info):
     
 # Requests trip after transformation from Lyft payload to Via
 def via_request_trip(ride_info):
+
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     params = {
@@ -160,6 +196,10 @@ def via_request_trip(ride_info):
 # Cancels trip based on trip ID
 def via_cancel_trip(trip_id):
 
+
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     params = {
@@ -183,6 +223,9 @@ def via_cancel_trip(trip_id):
 # Returns trip details based on trip ID
 def via_trip_details(trip_id):
 
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
+
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
     params = {
@@ -204,6 +247,9 @@ def via_trip_details(trip_id):
     return r.json()
 
 def via_get_trips(trip_criteria):
+
+    (client_id,client_secret,via_api_key,via_api_url,via_auth_url) = get_secrets()
+    print(f"client_id->{client_id},client_secret->{client_secret},via_api_key->{via_api_key},via_api_url->{via_api_url},via_auth_url->{via_auth_url}")
 
     auth = HTTPBasicAuth(client_id, client_secret)
     client = BackendApplicationClient(client_id=client_id)
@@ -246,6 +292,8 @@ def via_get_trips(trip_criteria):
 
 # Gets trip status for a given rider
 def via_check_status(rider):
+    
+    
     start_time = time.time()
     try:
         rider_id = via_get_rider_id_create(rider)
