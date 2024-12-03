@@ -217,6 +217,8 @@ class HealthConnectorCdkStack(Stack):
         self.setup_api_user_pool_client(user_pool, api_scope, 'Lyft')
         self.setup_api_user_pool_client(user_pool, api_scope, 'Pompano')
         self.setup_api_user_pool_client(user_pool, api_scope, 'Via')
+        self.setup_login_app_client(user_pool,'Signin')
+
 
         # bucket = s3_.Bucket(
         #     self,
@@ -566,6 +568,31 @@ class HealthConnectorCdkStack(Stack):
                 logout_urls=[
                     callback_url
                 ]
+            ),
+            supported_identity_providers=[
+                cognito_.UserPoolClientIdentityProvider.COGNITO
+            ]
+        )
+    
+    def setup_login_app_client(self,user_pool: cognito_.UserPool, client: str)-> cognito_.UserPoolClient:
+        return cognito_.UserPoolClient(
+            self,
+            f'HealthConnectorUserPoolApiClient-{client}',
+            user_pool=user_pool,
+            user_pool_client_name=f'api_client_{client}',
+            generate_secret=True,
+            auth_flows=cognito_.AuthFlow(
+                admin_user_password=True,
+                # refresh_token=True,
+                user_password=True,
+                user_srp=True
+            ),
+            o_auth=cognito_.OAuthSettings(
+                flows=cognito_.OAuthFlows(
+                    # implicit_code_grant=True,
+                    authorization_code_grant=True,
+                    # client_credentials=True
+                )
             ),
             supported_identity_providers=[
                 cognito_.UserPoolClientIdentityProvider.COGNITO
