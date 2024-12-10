@@ -17,15 +17,21 @@ class MedicaidPipelineStack(Stack):
                                 "MODMedicaidPipeline",
                                 pipeline_name="MODMedicaidPipeline",
                                 synth=ShellStep("Synth",
-                                                input=CodePipelineSource.connection(repo_string="Varasi/MOD-Medicaid",branch="subdev2",connection_arn="arn:aws:codeconnections:ap-south-1:443370714691:connection/8fb31a33-2f93-4c4f-a057-11803c0579e4"),
+                                                input=CodePipelineSource.connection(repo_string="SaiTejaVarasiDev/modmedicaid-aws-codepipeline",branch="main",connection_arn="arn:aws:codeconnections:ap-south-1:443370714691:connection/8b2ccefc-6bdc-442b-8c7c-5d26f632a991"),
                                 commands=["npm install -g aws-cdk",
-                                        #   "python -m pip install -r requirements.txt",
+                                          "python -m pip install -r requirements.txt",
                                           "cdk synth",
-                                          "mkdir common\python\lib\python3.11\site-packages",
-                                          "pip install -r lambda\requirements.txt --target common\python\lib\python3.11\site-packages",
-                                          "cd common",
-                                          "tar.exe -a -cf python.zip python",
-                                          "cd .."
+                                        #   "mkdir -p common/python/lib/python3.11/site-packages",
+                                        #   "ls",
+                                        #   "pip install -r lambda/requirements.txt --target common/python/lib/python3.11/site-packages",
+                                        #   "cd common",
+                                        #   "pwd",
+                                        #   "zip python.zip python",
+                                        #   "cd ..",
+                                        #   "cd common/python/lib/python3.11/site-packages",
+                                        #   "ls",
+                                        #   "pwd",
+                                        #   "cd ../../../../.."
                                           ]
                                 )
                                 
