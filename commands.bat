@@ -1,3 +1,4 @@
+@echo off
 echo Running commans to setup the layer...
 mkdir common\python\mod_medicaid
 mkdir common\python\lib\python3.11\site-packages
