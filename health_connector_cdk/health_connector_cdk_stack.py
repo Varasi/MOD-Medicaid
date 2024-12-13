@@ -28,10 +28,19 @@ class ApiScope():
 
 class HealthConnectorCdkStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, env_name: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        table_name = 'MOD_Medicaid'
+
+        if env_name=="dev":
+            self.env_name = "DEV"
+        elif env_name == "prod":
+            self.env_name = "PROD"
+        elif env_name == "test":
+            self.env_name = "TEST"
+
+
+        table_name = self.env_name+','+'MOD_Medicaid'
         table = dynamodb_.TableV2(
             self,
             'HealthConnectorMODMedicaidTable',
@@ -45,7 +54,7 @@ class HealthConnectorCdkStack(Stack):
             )
         )
 
-        table_name2 = 'MOD_Medicaid_History'
+        table_name2 = self.env_name+','+'MOD_Medicaid_History'
         table2 = dynamodb_.TableV2(
             self,
             'HealthConnectorMODMedicaidHistoryTable',
@@ -68,7 +77,7 @@ class HealthConnectorCdkStack(Stack):
 
         my_layer = lambda_.LayerVersion(
             self, 
-            "HealthConnectorLayer",
+            self.env_name+'-'+"HealthConnectorLayer",
             code=lambda_.Code.from_asset("common"),
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
             description="A layer with custom dependencies"
@@ -79,6 +88,7 @@ class HealthConnectorCdkStack(Stack):
         api_handler = lambda_.Function(
             self,
             'HealthConnectorApiHandler',
+            function_name=self.env_name+'-'+'HealthConnectorApiHandler',
             runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda',
                 # bundling=BundlingOptions(
@@ -98,6 +108,7 @@ class HealthConnectorCdkStack(Stack):
         dashboard_handler = lambda_.Function(
             self,
             'HealthConnectorDashboardHandler',
+            function_name=self.env_name+'-'+'HealthConnectorDashboardHandler',
             runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda'),
             handler='health_connector.dashboard_handler',
@@ -109,6 +120,7 @@ class HealthConnectorCdkStack(Stack):
         kiosk_workerbee = lambda_.Function(
             self,
             'HealthConnectorKioskWorker',
+            function_name=self.env_name+'-'+'HealthConnectorKioskWorker',
             runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda',
                 # bundling=BundlingOptions(
@@ -127,6 +139,7 @@ class HealthConnectorCdkStack(Stack):
         kiosk_statusbee = lambda_.Function(
             self,
             'HealthConnectorKioskStatus',
+            function_name=self.env_name+'-'+'HealthConnectorKioskStatus',
             runtime=lambda_.Runtime.PYTHON_3_11,
             code=lambda_.Code.from_asset('lambda',
                 # bundling=BundlingOptions(
@@ -267,7 +280,7 @@ class HealthConnectorCdkStack(Stack):
         #     )
         # )
 
-        api_stage_name = 'prod'
+        api_stage_name = self.env_name
         api = apigw_.RestApi(
             self,
             'HealthConnectorApi',
@@ -299,7 +312,7 @@ class HealthConnectorCdkStack(Stack):
 
         authorizer = apigw_.CognitoUserPoolsAuthorizer(
             self,
-            'HealthConnectorAuthorizer',
+            self.env_name+'HealthConnectorAuthorizer',
             cognito_user_pools=[user_pool],
             identity_source=apigw_.IdentitySource.header('Authorization')
         )
@@ -481,7 +494,7 @@ class HealthConnectorCdkStack(Stack):
             auto_verify=cognito_.AutoVerifiedAttrs(
                 email=True
             ),
-            user_pool_name='health_connector_user_pool',
+            user_pool_name=self.env_name+'-'+'health_connector_user_pool',
             self_sign_up_enabled=False,
             sign_in_aliases=cognito_.SignInAliases(
                 email=True
@@ -497,7 +510,7 @@ class HealthConnectorCdkStack(Stack):
             'HealthConnectorUserPoolDomain',
             user_pool=user_pool,
             cognito_domain=cognito_.CognitoDomainOptions(
-                domain_prefix='health-connectordev'
+                domain_prefix='health-connector'+'-'+self.env_name
             )
         )
 
