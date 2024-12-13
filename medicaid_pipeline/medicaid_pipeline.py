@@ -9,7 +9,7 @@ from medicaid_stage.medicaid_stage import MediciaidPipelineStage
 
 class MedicaidPipelineStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, pipeline_stage_name: str, env_name: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
 
@@ -37,6 +37,5 @@ class MedicaidPipelineStack(Stack):
                                 
                                 )
         
-        pipeline.add_stage(MediciaidPipelineStage(self, "dev", env_name="dev",
-                                        env=Environment(account='443370714691', region='ap-south-1')
+        pipeline.add_stage(MediciaidPipelineStage(self, pipeline_stage_name, env_name=env_name
                                         ))

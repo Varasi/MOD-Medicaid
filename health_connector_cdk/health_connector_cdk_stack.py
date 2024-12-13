@@ -510,7 +510,7 @@ class HealthConnectorCdkStack(Stack):
             'HealthConnectorUserPoolDomain',
             user_pool=user_pool,
             cognito_domain=cognito_.CognitoDomainOptions(
-                domain_prefix='health-connector'+'-'+self.env_name
+                domain_prefix='health-connector'+'-'+self.env_name.lower()
             )
         )
 
