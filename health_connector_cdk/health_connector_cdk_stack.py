@@ -40,7 +40,7 @@ class HealthConnectorCdkStack(Stack):
             self.env_name = "TEST"
 
 
-        table_name = self.env_name+','+'MOD_Medicaid'
+        table_name = self.env_name+'-'+'MOD_Medicaid'
         table = dynamodb_.TableV2(
             self,
             'HealthConnectorMODMedicaidTable',
@@ -54,7 +54,7 @@ class HealthConnectorCdkStack(Stack):
             )
         )
 
-        table_name2 = self.env_name+','+'MOD_Medicaid_History'
+        table_name2 = self.env_name+'-'+'MOD_Medicaid_History'
         table2 = dynamodb_.TableV2(
             self,
             'HealthConnectorMODMedicaidHistoryTable',
