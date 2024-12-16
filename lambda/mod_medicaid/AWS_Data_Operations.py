@@ -7,10 +7,11 @@ from boto3.dynamodb.conditions import Key
 import os
 # from .lyft_via_xform import lyft_to_via, via_to_lyft
 from .via_request import via_request_trip, via_cancel_trip
+environment = os.environ.get('ENVIRONMENT', 'development')
 
 def dd_new_trip(lyft_trip_data, atms_ride_id, via_response):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('MOD_Medicaid')
+    table = dynamodb.Table(environment+'-'+'MOD_Medicaid')
 
     #input data for table insertion
     tapi_trip_id = str(lyft_trip_data['tapi_trip_id'])
@@ -30,7 +31,7 @@ def dd_new_trip(lyft_trip_data, atms_ride_id, via_response):
         
 def dd_get_via_trip_id(tapi_trip_id):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('MOD_Medicaid')
+    table = dynamodb.Table(environment+'-'+'MOD_Medicaid')
 
     projection_expression = "via_trip_id"
 
@@ -52,7 +53,7 @@ def dd_get_via_trip_id(tapi_trip_id):
 def dd_history_entry(old_entry):
     # Prepare the DynamoDB client
     dynamodb = boto3.resource("dynamodb")
-    history_table = dynamodb.Table("MOD_Medicaid_History")
+    history_table = dynamodb.Table(environment+'-'+"MOD_Medicaid_History")
     old_entry['update_time'] = str(int(round(datetime.now().timestamp(), 0)))
 
     history_table.put_item(Item=old_entry)
@@ -61,7 +62,7 @@ def dd_history_entry(old_entry):
 # Check rows:
 def dd_retrieve_data(tapi_trip_id):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('MOD_Medicaid')
+    table = dynamodb.Table(environment+'-'+'MOD_Medicaid')
     filter_expression = Key('tapi_trip_id').eq(tapi_trip_id)
     rows = table.scan(
         FilterExpression=filter_expression
@@ -75,7 +76,7 @@ def dd_retrieve_data(tapi_trip_id):
 
 def dd_retrieve_by_via_trip_id(via_trip_id):
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table('MOD_Medicaid')
+    table = dynamodb.Table(environment+'-'+'MOD_Medicaid')
     filter_expression = Key('via_trip_id').eq(via_trip_id)
     rows = table.scan(
         FilterExpression=filter_expression
@@ -87,7 +88,7 @@ def dd_retrieve_by_via_trip_id(via_trip_id):
     return(items)
 
 if __name__ == "__main__":
-    os.environ["TABLE_NAME"] = "MOD_Medicaid"
+    os.environ["TABLE_NAME"] = os.environ.get('ENVIRONMENT', 'development')+'-'+"MOD_Medicaid"
     test_event = {  "tapi_trip_id": "1234tapi_new", "lyft_request_payload": "lyft_request_payload_type1",\
                    "via_trip_id": "1234via_new",  "via_response_payload": "via_response_payload_type1"}
     result = api_handler(test_event, None)
