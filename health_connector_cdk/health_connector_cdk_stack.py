@@ -594,7 +594,7 @@ class HealthConnectorCdkStack(Stack):
             f'HealthConnectorUserPoolApiClient-{client}',
             user_pool=user_pool,
             user_pool_client_name=f'api_client_{client}',
-            generate_secret=True,
+            generate_secret=False,
             auth_flows=cognito_.AuthFlow(
                 admin_user_password=True,
                 # refresh_token=True,
