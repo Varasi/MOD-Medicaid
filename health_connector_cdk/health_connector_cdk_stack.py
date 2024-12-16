@@ -614,7 +614,7 @@ class HealthConnectorCdkStack(Stack):
         )
 
     def setup_identity_pool(self, client: cognito_.UserPoolClient, user_pool: cognito_.UserPool)-> cognito_.CfnIdentityPool:
-        return cognito_.CfnIdentityPool(
+        identity_pool = cognito_.CfnIdentityPool(
             self, 
             self.env_name+"-"+"MODMedicaidIdentityPool",
             identity_pool_name=self.env_name+"-"+"MODMedicaidIdentityPool",
@@ -626,4 +626,31 @@ class HealthConnectorCdkStack(Stack):
                 )
             ]
 
+        )
+
+        role = iam.Role(
+            self,
+            "KioskUserRole",
+            role_name = "KioskUserRole",
+            assumed_by=iam.FederatedPrincipal(
+                federated="cognito-identity.amazonaws.com",
+                conditions={
+                    "StringEquals": {
+                        "cognito-identity.amazonaws.com:aud": identity_pool.ref
+                    },
+                    "ForAnyValue:StringLike": {
+                        "cognito-identity.amazonaws.com:amr": "authenticated"
+                    }
+                },
+                assume_role_action="sts:AssumeRoleWithWebIdentity"
+            ),
+            description="Role for authenticated users in the specified Cognito identity pool"
+        )
+        cognito_.CfnIdentityPoolRoleAttachment(
+            self,
+            "IdentityPoolRoleAttachment",
+            identity_pool_id=identity_pool.ref,
+            roles={
+                "authenticated": role.role_arn
+            }
         )
