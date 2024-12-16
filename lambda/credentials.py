@@ -1,11 +1,15 @@
-# Via Credentials
-via_client_id = ''
-via_client_secret = ''
-via_api_key = ''
-via_auth_url = 'https://trip-api.auth.us-east-1.amazoncognito.com/oauth2/token'
-via_api_url = 'us-east-1.trip-api.ridewithvia.com'
+from mod_medicaid.secrets import SecretManager
 
-# Lyft Credentials
+# Via Credentials
+class crendential:
+    def __init__(self) -> None:
+        self.via_client_id = SecretManager().get_secret_value("via_client_id")
+        self.via_client_secret = SecretManager().get_secret_value("via_client_secret")
+        self.via_api_key = SecretManager().get_secret_value("via_api_key")
+        self.via_auth_url = SecretManager().get_secret_value("via_auth_url")
+        self.via_api_url = SecretManager().get_secret_value("via_api_url")
+
+# # Lyft Credentials
 lyft_client_id = ''
 lyft_client_secret = ''
 lyft_program_id = ''
