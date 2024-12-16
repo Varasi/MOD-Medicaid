@@ -78,7 +78,7 @@ class HealthConnectorCdkStack(Stack):
         my_layer = lambda_.LayerVersion(
             self, 
             self.env_name+'-'+"HealthConnectorLayer",
-            code=lambda_.Code.from_asset("common"),
+            code=lambda_.Code.from_asset("common/python.zip"),
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
             description="A layer with custom dependencies"
         )
