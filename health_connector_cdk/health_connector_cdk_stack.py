@@ -101,8 +101,7 @@ class HealthConnectorCdkStack(Stack):
             timeout=Duration.minutes(1),
             environment={
                 'TABLE_NAME': table_name,
-                'Execution': "On_AWS",
-                "ENVIRONMENT": self.env_name
+                'Execution': "On_AWS"
             }
         )
 
@@ -115,8 +114,7 @@ class HealthConnectorCdkStack(Stack):
             handler='health_connector.dashboard_handler',
             layers=[my_layer],
             environment={
-                'TABLE_NAME': table_name,
-                "ENVIRONMENT": self.env_name
+                'TABLE_NAME': table_name
             }
         )
         kiosk_workerbee = lambda_.Function(
@@ -134,8 +132,7 @@ class HealthConnectorCdkStack(Stack):
             layers=[my_layer],
             timeout=Duration.minutes(10),
             environment={
-                'TABLE_NAME': table_name,
-                "ENVIRONMENT": self.env_name
+                'TABLE_NAME': table_name
             }
         )
 
@@ -154,8 +151,7 @@ class HealthConnectorCdkStack(Stack):
             layers=[my_layer],
             timeout=Duration.minutes(10),
             environment={
-                'TABLE_NAME': table_name,
-                "ENVIRONMENT": self.env_name
+                'TABLE_NAME': table_name
             }
         )
 
