@@ -13,6 +13,7 @@ from aws_cdk import (
     aws_certificatemanager as acm_,
     aws_cloudfront as cloudfront_,
     aws_cloudfront_origins as origins_,
+    aws_secretsmanager as secretsmanager
 )
 from constructs import Construct
 
@@ -29,6 +30,9 @@ class HealthConnectorCdkStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        # secret = secretsmanager.Secret.from_secret_name_v2(self, 'dev_credentials', 'dev_credentials')
+        secret = secretsmanager.Secret.from_secret_name_v2(self, 'prod_credentials', 'prod_credentials')
 
         table_name = 'MOD_Medicaid'
         table = dynamodb_.TableV2(
@@ -85,6 +89,8 @@ class HealthConnectorCdkStack(Stack):
             }
         )
 
+        secret.grant_read(api_handler.role)
+
         dashboard_handler = lambda_.Function(
             self,
             'HealthConnectorDashboardHandler',
@@ -112,6 +118,8 @@ class HealthConnectorCdkStack(Stack):
             }
         )
 
+        secret.grant_read(kiosk_workerbee.role)
+        
         kiosk_statusbee = lambda_.Function(
             self,
             'HealthConnectorKioskStatus',
@@ -128,6 +136,8 @@ class HealthConnectorCdkStack(Stack):
                 'TABLE_NAME': table_name
             }
         )
+
+        secret.grant_read(kiosk_statusbee.role)
 
         lyft_tapi_trips = lambda_.Function(
             self,
@@ -153,6 +163,7 @@ class HealthConnectorCdkStack(Stack):
 
 
         domain_name = 'hirtahealthconnector.org'
+        # domain_name = 'hirtahealthconnector.org'
         hosted_zone = route53_.HostedZone.from_lookup(
             self,
             'HealthConnectorHostedZone',
@@ -162,6 +173,7 @@ class HealthConnectorCdkStack(Stack):
         us_east_1_certificate = acm_.Certificate.from_certificate_arn(
             self,
             'HealthConnectorCertificateUsEast1',
+            # certificate_arn='arn:aws:acm:us-east-1:135808953563:certificate/d76fa1be-fdea-44e4-af22-6e449a1557c2'
             certificate_arn='arn:aws:acm:us-east-1:891377257073:certificate/2ff2ee84-3e12-4701-9628-877fabd5f76c'
         )
         certificate = acm_.Certificate(
@@ -196,13 +208,6 @@ class HealthConnectorCdkStack(Stack):
                 restrict_public_buckets=False
             )
         )
-        # s3_deployment_.BucketDeployment(
-        #     self,
-        #     'HealthConnectorBucketDeployment',
-        #     # sources=[s3_deployment_.Source.asset('website/dist')],
-        #     destination_bucket=bucket
-        # )
-
 
         # this one is for Kiosk!!
         cloudfront_distribution = cloudfront_.Distribution(
@@ -219,6 +224,13 @@ class HealthConnectorCdkStack(Stack):
                 # f'kiosk.hirta.us'
             ],
             certificate=us_east_1_certificate
+        )
+        s3_deployment_.BucketDeployment(
+            self,
+            'HealthConnectorBucketDeployment',
+            sources=[s3_deployment_.Source.asset('website/dist')],
+            destination_bucket=bucket,
+            distribution=cloudfront_distribution,
         )
         route53_.ARecord(
             self,
@@ -266,6 +278,8 @@ class HealthConnectorCdkStack(Stack):
             cognito_user_pools=[user_pool],
             identity_source=apigw_.IdentitySource.header('Authorization')
         )
+
+        # oauth2 endpoint
 
         api.root.add_resource('oauth2').add_resource('token').add_method(
             'POST',
@@ -348,11 +362,9 @@ class HealthConnectorCdkStack(Stack):
                 proxy=True
             ),
             authorizer=authorizer,
-            authorization_scopes=[
-                api_scope.auth_scope
-            ]
         )
 
+        # Fixing issue around cognito user pool by removing authoirzation scope.
         connector_resource_status = api.root.add_resource('connector_status')
         connector_resource_status.add_method(
             'POST',
@@ -361,9 +373,6 @@ class HealthConnectorCdkStack(Stack):
                 proxy=True
             ),
             authorizer=authorizer,
-            authorization_scopes=[
-                api_scope.auth_scope
-            ]
         )
 
         ## THE NEW ONES
@@ -376,9 +385,6 @@ class HealthConnectorCdkStack(Stack):
                 proxy=True
             ),
             authorizer=authorizer,
-            authorization_scopes=[
-                api_scope.auth_scope
-            ]
         )
         kiosk_resource = api.root.add_resource('kiosk_request_detail')
         kiosk_resource.add_method(
@@ -388,9 +394,6 @@ class HealthConnectorCdkStack(Stack):
                 proxy=True
             ),
             authorizer=authorizer,
-            authorization_scopes=[
-                api_scope.auth_scope
-            ]
         )
 
         kiosk_resource_status = api.root.add_resource('kiosk_status')
@@ -401,9 +404,6 @@ class HealthConnectorCdkStack(Stack):
                 proxy=True
             ),
             authorizer=authorizer,
-            authorization_scopes=[
-                api_scope.auth_scope
-            ]
         )
 
         ## VIA WEBHOOK ENDPOINT
@@ -431,7 +431,8 @@ class HealthConnectorCdkStack(Stack):
 
         self.setup_web_user_pool_client(
             user_pool=user_pool,
-            callback_url='https://dashboard.hirtahealthconnector.org/'
+            callback_url1='https://kiosk.hirta.us/',
+            callback_url2='https://kiosk.hirta.us/static/cognito.html'
         )
 
 
@@ -508,13 +509,17 @@ class HealthConnectorCdkStack(Stack):
             )
         )
 
-    def setup_web_user_pool_client(self, user_pool: cognito_.UserPool, callback_url: str) -> cognito_.UserPoolClient:
+    def setup_web_user_pool_client(self, user_pool: cognito_.UserPool, callback_url1: str, callback_url2: str) -> cognito_.UserPoolClient:
 
         return cognito_.UserPoolClient(
             self,
             'HealthConnectorUserPoolWebClient',
             user_pool=user_pool,
             user_pool_client_name='health_connector_user_pool_web_client',
+            auth_session_validity=Duration.minutes(3),
+            refresh_token_validity=Duration.minutes(8 * 24 * 60), # 8 days
+            access_token_validity=Duration.minutes(1 * 24 * 60), # 1 day
+            id_token_validity=Duration.minutes(1 * 24 * 60), # 1 day
             auth_flows=cognito_.AuthFlow(user_password=True),
             o_auth=cognito_.OAuthSettings(
                 flows=cognito_.OAuthFlows(
@@ -526,10 +531,11 @@ class HealthConnectorCdkStack(Stack):
                     cognito_.OAuthScope.EMAIL
                 ],
                 callback_urls=[
-                    callback_url
+                    callback_url1,
+                    callback_url2
                 ],
                 logout_urls=[
-                    callback_url
+                    callback_url1
                 ]
             ),
             supported_identity_providers=[

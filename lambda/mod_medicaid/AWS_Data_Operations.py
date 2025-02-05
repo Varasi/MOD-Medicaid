@@ -1,22 +1,19 @@
-import json
+import json, uuid, os
 from datetime import datetime
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
-import os
-# from .lyft_via_xform import lyft_to_via, via_to_lyft
-from .via_request import via_request_trip, via_cancel_trip
-
-def dd_new_trip(lyft_trip_data, atms_ride_id, via_response):
+def dd_new_trip(lyft_trip_data=None, atms_ride_id=str(uuid.uuid4()), via_response=None):
     dynamodb = boto3.resource("dynamodb")
     table = dynamodb.Table('MOD_Medicaid')
 
     #input data for table insertion
-    tapi_trip_id = str(lyft_trip_data['tapi_trip_id'])
+    # Protects dynamodb table if string is not provided, except for None
+    tapi_trip_id = str(lyft_trip_data.get('tapi_trip_id')) if lyft_trip_data else None
     via_trip_id = via_response['trip_id']
-    lyft_request_payload = json.dumps(lyft_trip_data)
-    via_response_payload = json.dumps(via_response)
+    lyft_request_payload = json.dumps(lyft_trip_data) if lyft_trip_data else None
+    via_response_payload = json.dumps(via_response) if via_response else None
 
     # Insert items into table.
     table.put_item(Item={
@@ -33,6 +30,7 @@ def dd_get_via_trip_id(tapi_trip_id):
     table = dynamodb.Table('MOD_Medicaid')
 
     projection_expression = "via_trip_id"
+    # projection_expression = "column1, column2"
 
     # Define the filter expression
     filter_expression = Key('tapi_trip_id').eq(tapi_trip_id)
@@ -92,3 +90,13 @@ if __name__ == "__main__":
                    "via_trip_id": "1234via_new",  "via_response_payload": "via_response_payload_type1"}
     result = api_handler(test_event, None)
     print(result)
+
+
+# def dd_get_rider_id(fname, lname, ph, email):
+#     dynamodb = boto3.resource('dynamodb')
+#     table = 
+#     try:
+
+
+
+#     return 
